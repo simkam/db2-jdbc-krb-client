@@ -29,6 +29,11 @@
             <artifactId>db2jdbc</artifactId>
             <version>1</version>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.security</groupId>
+            <artifactId>jboss-negotiation-extras</artifactId>
+            <version>2.3.0.Final</version>
+        </dependency>
     </dependencies>
 
     <build>
