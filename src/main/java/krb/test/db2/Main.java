@@ -34,43 +34,11 @@ public class Main {
         handler.setLevel(Level.ALL);
         logger.addHandler(handler);
 
+        System.setProperty("java.security.auth.login.config", new File("login.conf").getAbsolutePath());
         System.setProperty("sun.security.krb5.debug", "true");
         System.setProperty("java.security.krb5.realm", "MW.LAB.ENG.BOS.REDHAT.COM");
         System.setProperty("java.security.krb5.kdc", "kerberos-test.mw.lab.eng.bos.redhat.com");
         System.setProperty("java.security.krb5.conf", new File("krb5.conf").getAbsolutePath());
-
-        class Krb5LoginConfiguration extends Configuration {
-
-            private final AppConfigurationEntry[] configList = new AppConfigurationEntry[1];
-
-            public Krb5LoginConfiguration() {
-                Map<String, String> options = new HashMap<String, String>();
-                options.put("storeKey", "false");
-                options.put("useKeyTab", "true");
-                options.put("keyTab", "KRBUSR01");
-                options.put("principal", "KRBUSR01@MW.LAB.ENG.BOS.REDHAT.COM");
-                options.put("doNotPrompt", "true");
-                options.put("useTicketCache", "true");
-                options.put("ticketCache", "/tmp/krbcc_1000");
-                options.put("refreshKrb5Config", "true");
-                options.put("isInitiator", "true");
-                options.put("addGSSCredential", "true");
-                configList[0] = new AppConfigurationEntry(
-                        "org.jboss.security.negotiation.KerberosLoginModule",
-                        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
-                        options);
-            }
-
-            @Override
-            public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-                return configList;
-            }
-        }
-
-        Configuration.setConfiguration(new Krb5LoginConfiguration());
-        final LoginContext lc = new LoginContext("test");
-        lc.login();
-        Subject subject = lc.getSubject();
 
         final Properties props = new Properties();
         props.put("securityMechanism",
@@ -80,13 +48,7 @@ public class Main {
 
         Connection conn = null;
         try {
-            conn = Subject.doAs(subject, new PrivilegedExceptionAction<Connection>() {
-                @Override
-                public Connection run() throws Exception {
-                    return DriverManager.getConnection(JDBC_URL, props);
-                }
-            });
-
+            conn = DriverManager.getConnection(JDBC_URL, props);
             printUserName(conn);
             conn.close();
         } catch (Throwable t) {
@@ -94,8 +56,6 @@ public class Main {
         } finally {
             if(conn != null)
                 conn.close();
-            if(lc != null)
-                lc.logout();
         }
     }
 
